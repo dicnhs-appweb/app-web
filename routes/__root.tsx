@@ -1,18 +1,18 @@
-import { createRootRoute, Link, Outlet } from "@tanstack/react-router";
+import { UserContextType } from "@/context/auth-context";
+import { createRootRouteWithContext, Outlet } from "@tanstack/react-router";
 import { TanStackRouterDevtools } from "@tanstack/router-devtools";
 
-export const Route = createRootRoute({
+interface UserRouteContext {
+  auth: {
+    isAuthenticated: boolean;
+    authActions: Omit<UserContextType, "user" | "setUser">;
+    user: Realm.User | null;
+  };
+}
+
+export const Route = createRootRouteWithContext<UserRouteContext>()({
   component: () => (
     <>
-      <div className="p-2 flex gap-2">
-        <Link to="/" className="[&.active]:font-bold">
-          Home
-        </Link>{" "}
-        <Link to="/about" className="[&.active]:font-bold">
-          About
-        </Link>
-      </div>
-      <hr />
       <Outlet />
       <TanStackRouterDevtools />
     </>
