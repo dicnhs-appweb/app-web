@@ -1,10 +1,32 @@
 {
   "$schema": "https://biomejs.dev/schemas/1.8.3/schema.json",
-  "organizeImports": { "enabled": true },
+  "formatter": {
+    "enabled": true,
+    "formatWithErrors": false,
+    "indentStyle": "space",
+    "indentWidth": 2,
+    "lineEnding": "lf",
+    "lineWidth": 80,
+    "attributePosition": "auto"
+  },
+  "organizeImports": {"enabled": true},
   "linter": {
     "enabled": true,
-    "rules": { "recommended": false },
+    "rules": {"recommended": false},
     "ignore": ["dist"]
+  },
+  "javascript": {
+    "formatter": {
+      "jsxQuoteStyle": "double",
+      "quoteProperties": "asNeeded",
+      "trailingCommas": "es5",
+      "semicolons": "asNeeded",
+      "arrowParentheses": "asNeeded",
+      "bracketSpacing": false,
+      "bracketSameLine": false,
+      "quoteStyle": "single",
+      "attributePosition": "auto"
+    }
   },
   "overrides": [
     {
@@ -70,7 +92,7 @@
         }
       }
     },
-    { "include": ["**/*.{ts,tsx}"], "javascript": { "globals": [] } },
+    {"include": ["**/*.{ts,tsx}"], "javascript": {"globals": []}},
     {
       "include": ["**/*.{ts,tsx}"],
       "linter": {
@@ -116,7 +138,7 @@
             "noUnusedVariables": "error",
             "useArrayLiterals": "off"
           },
-          "style": { "noNamespace": "error", "useAsConstAssertion": "error" },
+          "style": {"noNamespace": "error", "useAsConstAssertion": "error"},
           "suspicious": {
             "noExplicitAny": "error",
             "noExtraNonNullAssertion": "error",

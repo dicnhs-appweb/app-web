@@ -13,10 +13,11 @@
 import { Route as rootRoute } from './routes/__root'
 import { Route as PublicImport } from './routes/_public'
 import { Route as AuthImport } from './routes/_auth'
-import { Route as IndexImport } from './routes/index'
+import { Route as PublicIndexImport } from './routes/_public/index'
 import { Route as PublicRegisterImport } from './routes/_public/register'
 import { Route as PublicLoginImport } from './routes/_public/login'
 import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
+import { Route as AuthProductIdImport } from './routes/_auth/product/$id'
 
 // Create/Update Routes
 
@@ -30,9 +31,9 @@ const AuthRoute = AuthImport.update({
   getParentRoute: () => rootRoute,
 } as any)
 
-const IndexRoute = IndexImport.update({
+const PublicIndexRoute = PublicIndexImport.update({
   path: '/',
-  getParentRoute: () => rootRoute,
+  getParentRoute: () => PublicRoute,
 } as any)
 
 const PublicRegisterRoute = PublicRegisterImport.update({
@@ -50,17 +51,15 @@ const AuthDashboardRoute = AuthDashboardImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
+const AuthProductIdRoute = AuthProductIdImport.update({
+  path: '/product/$id',
+  getParentRoute: () => AuthRoute,
+} as any)
+
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/': {
-      id: '/'
-      path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexImport
-      parentRoute: typeof rootRoute
-    }
     '/_auth': {
       id: '/_auth'
       path: ''
@@ -96,17 +95,31 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicRegisterImport
       parentRoute: typeof PublicImport
     }
+    '/_public/': {
+      id: '/_public/'
+      path: '/'
+      fullPath: '/'
+      preLoaderRoute: typeof PublicIndexImport
+      parentRoute: typeof PublicImport
+    }
+    '/_auth/product/$id': {
+      id: '/_auth/product/$id'
+      path: '/product/$id'
+      fullPath: '/product/$id'
+      preLoaderRoute: typeof AuthProductIdImport
+      parentRoute: typeof AuthImport
+    }
   }
 }
 
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-  IndexRoute,
-  AuthRoute: AuthRoute.addChildren({ AuthDashboardRoute }),
+  AuthRoute: AuthRoute.addChildren({ AuthDashboardRoute, AuthProductIdRoute }),
   PublicRoute: PublicRoute.addChildren({
     PublicLoginRoute,
     PublicRegisterRoute,
+    PublicIndexRoute,
   }),
 })
 
@@ -118,25 +131,23 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/",
         "/_auth",
         "/_public"
       ]
     },
-    "/": {
-      "filePath": "index.tsx"
-    },
     "/_auth": {
       "filePath": "_auth.tsx",
       "children": [
-        "/_auth/dashboard"
+        "/_auth/dashboard",
+        "/_auth/product/$id"
       ]
     },
     "/_public": {
       "filePath": "_public.tsx",
       "children": [
         "/_public/login",
-        "/_public/register"
+        "/_public/register",
+        "/_public/"
       ]
     },
     "/_auth/dashboard": {
@@ -150,6 +161,14 @@ export const routeTree = rootRoute.addChildren({
     "/_public/register": {
       "filePath": "_public/register.tsx",
       "parent": "/_public"
+    },
+    "/_public/": {
+      "filePath": "_public/index.tsx",
+      "parent": "/_public"
+    },
+    "/_auth/product/$id": {
+      "filePath": "_auth/product/$id.tsx",
+      "parent": "/_auth"
     }
   }
 }
