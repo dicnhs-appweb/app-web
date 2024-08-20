@@ -1,25 +1,14 @@
-import { LoginForm } from "@/features/public/login/component/login-form";
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import {LoginForm} from '@/features/public/login/component/login-form'
+import {createFileRoute} from '@tanstack/react-router'
+import {z} from 'zod'
 
-export const Route = createFileRoute("/_public/login")({
-  beforeLoad: async ({
-    context: {
-      auth: {
-        authActions: { fetchUser },
-      },
-    },
-  }) => {
-    const user = await fetchUser();
-    if (user) {
-      throw redirect({
-        to: "/dashboard",
-        replace: true,
-      });
-    }
-  },
+export const Route = createFileRoute('/_public/login')({
+  validateSearch: z.object({
+    redirect: z.string().optional(),
+  }),
   component: () => (
     <div className="flex flex-col items-center justify-center h-full">
       <LoginForm />
     </div>
   ),
-});
+})

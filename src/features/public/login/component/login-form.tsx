@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
+import {Button} from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -13,44 +13,42 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useAuthentication } from "@/hooks/use-auth";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { loginSchema } from "./login-schema";
+} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {useLogin} from '@/features/auth/authenticate/auth-store'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {useForm} from 'react-hook-form'
+import {z} from 'zod'
+import {loginSchema} from './login-schema'
 
 export function LoginForm() {
-  const { emailPasswordLogin } = useAuthentication();
+  const login = useLogin()
   const loginForm = useForm<z.infer<typeof loginSchema>>({
     resolver: zodResolver(loginSchema),
     defaultValues: {},
-  });
-  const onSubmit = async (values: z.infer<typeof loginSchema>) => {
+  })
+  const onSubmit = async ({email, password}: z.infer<typeof loginSchema>) => {
     try {
-      const user = await emailPasswordLogin(values.email, values.password);
-      if (user) {
-        loginForm.reset();
-        location.reload();
-      }
+      await login(email, password)
     } catch (error) {
-      if (error && typeof error === "object" && "statusCode" in error) {
+      if (error && typeof error === 'object' && 'statusCode' in error) {
         if (error.statusCode === 401) {
-          alert("Invalid username/password. Try again!");
-        } else if ("message" in error && typeof error.message === "string") {
-          alert(error.message);
+          alert('Invalid username/password. Try again!')
+        } else if ('message' in error && typeof error.message === 'string') {
+          alert(error.message)
         } else {
-          alert("An unknown error occurred");
+          alert('An unknown error occurred')
         }
       } else {
-        alert("An unexpected error occurred");
+        alert('An unexpected error occurred')
       }
+    } finally {
+      loginForm.reset()
     }
-  };
+  }
 
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="max-w-sm mx-auto">
       <CardHeader>
         <CardTitle className="text-xl">Login</CardTitle>
         <CardDescription>
@@ -66,7 +64,7 @@ export function LoginForm() {
             <FormField
               control={loginForm.control}
               name="email"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="email">Email</FormLabel>
                   <FormControl>
@@ -85,7 +83,7 @@ export function LoginForm() {
             <FormField
               control={loginForm.control}
               name="password"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="password">Password</FormLabel>
                   <FormControl>
@@ -102,5 +100,5 @@ export function LoginForm() {
         </Form>
       </CardContent>
     </Card>
-  );
+  )
 }

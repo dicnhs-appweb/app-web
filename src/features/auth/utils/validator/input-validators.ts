@@ -26,7 +26,8 @@ function isValidProductionForecast(
 ): boolean {
   const { maximumUnitsProducible, productionConstraint } = forecast;
   return (
-    isValidNumber(maximumUnitsProducible) && isValidString(productionConstraint)
+    isValidNumber(maximumUnitsProducible ?? 0) &&
+    isValidString(productionConstraint ?? "")
   );
 }
 
@@ -53,5 +54,5 @@ export {
   isValidProductionForecast,
   isValidProfitMarginSettings,
   isValidRawMaterials,
-  isValidString,
+  isValidString
 };

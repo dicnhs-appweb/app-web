@@ -1,4 +1,4 @@
-import * as z from "zod";
+import * as z from 'zod';
 
 export const OverheadExpenseSchema = z.object({
   expenseCategory: z.string(),
@@ -13,7 +13,7 @@ export const ProductionForecastSchema = z.object({
 export type ProductionForecast = z.infer<typeof ProductionForecastSchema>;
 
 export const ProfitMarginSettingsSchema = z.object({
-  calculationType: z.enum(["percentage", "fixed"]),
+  calculationType: z.enum(['percentage', 'fixed']),
   percentageValue: z.number(),
 });
 export type ProfitMarginSettings = z.infer<typeof ProfitMarginSettingsSchema>;

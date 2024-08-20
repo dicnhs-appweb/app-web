@@ -2,10 +2,10 @@ export type calculationType = "percentage" | "fixed";
 
 export interface ProductType {
   productName: string;
-  manufacturingCostPerUnit: number;
+  manufacturingCostPerUnit?: number;
   profitMarginSettings: ProfitMarginSettings;
-  recommendedRetailPrice: number;
-  productionForecast: ProductionForecast;
+  recommendedRetailPrice?: number;
+  productionForecast?: ProductionForecast;
   rawMaterials: RawMaterial[];
   overheadExpenses: OverheadExpense[];
 }
