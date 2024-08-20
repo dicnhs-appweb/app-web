@@ -1,11 +1,11 @@
-import { Button } from "@/components/ui/button";
+import {Button} from '@/components/ui/button'
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from '@/components/ui/card'
 import {
   Form,
   FormControl,
@@ -13,35 +13,36 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { useAuthentication } from "@/hooks/use-auth";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { registerSchema } from "./register-schema";
+} from '@/components/ui/form'
+import {Input} from '@/components/ui/input'
+import {useRegister} from '@/features/auth/authenticate/auth-store'
+import {zodResolver} from '@hookform/resolvers/zod'
+import {useForm} from 'react-hook-form'
+import {z} from 'zod'
+import {registerSchema} from './register-schema'
 
 export function RegisterForm() {
   const registerForm = useForm<z.infer<typeof registerSchema>>({
     resolver: zodResolver(registerSchema),
     defaultValues: {},
-  });
-
-  const { emailPasswordSignup } = useAuthentication();
-  const onRegister = async (values: z.infer<typeof registerSchema>) => {
+  })
+  const register = useRegister()
+  const onRegister = async ({
+    email,
+    password,
+  }: z.infer<typeof registerSchema>) => {
     try {
-      const result = await emailPasswordSignup(values.email, values.password);
-      if (result) {
-        registerForm.reset();
-        location.reload();
-      }
+      await register(email, password)
+      location.reload()
     } catch (error) {
-      alert(error);
+      alert(error)
+    } finally {
+      registerForm.reset()
     }
-  };
+  }
 
   return (
-    <Card className="mx-auto max-w-sm">
+    <Card className="max-w-sm mx-auto">
       <CardHeader>
         <CardTitle className="text-xl">Register</CardTitle>
         <CardDescription>
@@ -58,7 +59,7 @@ export function RegisterForm() {
               <FormField
                 control={registerForm.control}
                 name="first_name"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel htmlFor="first-name">First name</FormLabel>
                     <FormControl>
@@ -76,7 +77,7 @@ export function RegisterForm() {
               <FormField
                 control={registerForm.control}
                 name="last_name"
-                render={({ field }) => (
+                render={({field}) => (
                   <FormItem>
                     <FormLabel htmlFor="last-name">Last name</FormLabel>
                     <FormControl>
@@ -95,7 +96,7 @@ export function RegisterForm() {
             <FormField
               control={registerForm.control}
               name="email"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="email">Email</FormLabel>
                   <FormControl>
@@ -114,7 +115,7 @@ export function RegisterForm() {
             <FormField
               control={registerForm.control}
               name="password"
-              render={({ field }) => (
+              render={({field}) => (
                 <FormItem>
                   <FormLabel htmlFor="password">Password</FormLabel>
                   <FormControl>
@@ -131,5 +132,5 @@ export function RegisterForm() {
         </Form>
       </CardContent>
     </Card>
-  );
+  )
 }

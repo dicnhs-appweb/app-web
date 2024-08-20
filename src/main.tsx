@@ -1,30 +1,47 @@
-import { createRouter } from "@tanstack/react-router";
-import { StrictMode } from "react";
-import ReactDOM from "react-dom/client";
-import { InnerApp } from "./App";
-import { AuthProvider } from "./context/auth-context";
-import "./index.css";
-import { routeTree } from "./routeTree.gen";
+import {QueryClient, QueryClientProvider} from '@tanstack/react-query'
+import {RouterProvider, createRouter} from '@tanstack/react-router'
+import {StrictMode} from 'react'
+import ReactDOM from 'react-dom/client'
+import {AuthProvider} from './features/auth/authenticate/auth-context'
+import {useAuthStore} from './features/auth/authenticate/auth-store'
+import './index.css'
+import {routeTree} from './routeTree.gen'
+
+const queryClient = new QueryClient()
 
 export const router = createRouter({
   routeTree,
   context: {
-    auth: {
-      isAuthenticated: undefined!,
-      authActions: undefined!,
-      user: undefined!,
-    },
+    queryClient,
+    auth: undefined!,
   },
-});
+  defaultPreload: 'intent',
+  defaultPreloadStaleTime: 0,
+})
 
-const rootElement = document.getElementById("root")!;
+function InnerApp() {
+  const auth = useAuthStore()
+  return (
+    <RouterProvider
+      router={router}
+      context={{
+        auth,
+      }}
+      defaultPreload="intent"
+    />
+  )
+}
+
+const rootElement = document.getElementById('root')!
 if (!rootElement.innerHTML) {
-  const root = ReactDOM.createRoot(rootElement);
+  const root = ReactDOM.createRoot(rootElement)
   root.render(
     <StrictMode>
-      <AuthProvider>
-        <InnerApp />
-      </AuthProvider>
+      <QueryClientProvider client={queryClient}>
+        <AuthProvider>
+          <InnerApp />
+        </AuthProvider>
+      </QueryClientProvider>
     </StrictMode>
-  );
+  )
 }
