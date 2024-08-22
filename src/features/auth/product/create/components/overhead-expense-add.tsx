@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/form'
 import {Input} from '@/components/ui/input'
 import {cn} from '@/lib/utils'
-import {OverheadExpenseSchema} from '@/types/product.schema'
+import {OverheadExpenseSchema} from '../computations/types/product.schema'
 import {useOverheadExpensesStore} from '../store/use-overhead-expense-store'
 
 type FormValues = z.infer<typeof OverheadExpenseSchema>

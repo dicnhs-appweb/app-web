@@ -16,6 +16,7 @@ import { Route as AuthImport } from './routes/_auth'
 import { Route as PublicIndexImport } from './routes/_public/index'
 import { Route as PublicRegisterImport } from './routes/_public/register'
 import { Route as PublicLoginImport } from './routes/_public/login'
+import { Route as AuthTestImport } from './routes/_auth/test'
 import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
 import { Route as AuthProductCreateImport } from './routes/_auth/product/create'
 import { Route as AuthProductViewIdImport } from './routes/_auth/product/view.$id'
@@ -46,6 +47,11 @@ const PublicRegisterRoute = PublicRegisterImport.update({
 const PublicLoginRoute = PublicLoginImport.update({
   path: '/login',
   getParentRoute: () => PublicRoute,
+} as any)
+
+const AuthTestRoute = AuthTestImport.update({
+  path: '/test',
+  getParentRoute: () => AuthRoute,
 } as any)
 
 const AuthDashboardRoute = AuthDashboardImport.update({
@@ -91,6 +97,13 @@ declare module '@tanstack/react-router' {
       path: '/dashboard'
       fullPath: '/dashboard'
       preLoaderRoute: typeof AuthDashboardImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/test': {
+      id: '/_auth/test'
+      path: '/test'
+      fullPath: '/test'
+      preLoaderRoute: typeof AuthTestImport
       parentRoute: typeof AuthImport
     }
     '/_public/login': {
@@ -143,6 +156,7 @@ declare module '@tanstack/react-router' {
 export const routeTree = rootRoute.addChildren({
   AuthRoute: AuthRoute.addChildren({
     AuthDashboardRoute,
+    AuthTestRoute,
     AuthProductCreateRoute,
     AuthProductEditIdRoute,
     AuthProductViewIdRoute,
@@ -170,6 +184,7 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth.tsx",
       "children": [
         "/_auth/dashboard",
+        "/_auth/test",
         "/_auth/product/create",
         "/_auth/product/edit/$id",
         "/_auth/product/view/$id"
@@ -185,6 +200,10 @@ export const routeTree = rootRoute.addChildren({
     },
     "/_auth/dashboard": {
       "filePath": "_auth/dashboard.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/test": {
+      "filePath": "_auth/test.tsx",
       "parent": "/_auth"
     },
     "/_public/login": {

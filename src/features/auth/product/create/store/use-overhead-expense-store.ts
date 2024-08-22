@@ -1,5 +1,5 @@
-import {OverheadExpense} from '@/types/product.schema';
 import {create} from 'zustand';
+import {OverheadExpense} from '../computations/types/product.schema';
 
 interface OverheadExpensesState {
   overheadExpenses: OverheadExpense[];

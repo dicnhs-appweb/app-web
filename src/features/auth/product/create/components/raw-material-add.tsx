@@ -34,7 +34,7 @@ import {
 } from '@/components/ui/form'
 import {Input} from '@/components/ui/input'
 import {cn} from '@/lib/utils'
-import {RawMaterialSchema} from '@/types/product.schema'
+import {RawMaterialSchema} from '../computations/types/product.schema'
 import {useRawMaterialsStore} from '../store/use-raw-materials-store'
 
 type FormValues = z.infer<typeof RawMaterialSchema>

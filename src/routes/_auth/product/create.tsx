@@ -23,15 +23,15 @@ import {OverheadExpenseDataTable} from '@/features/auth/product/create/component
 import {RawMaterialAdd} from '@/features/auth/product/create/components/raw-material-add'
 import {rawMaterialColumns} from '@/features/auth/product/create/components/raw-material-table/columns'
 import {RawMaterialDataTable} from '@/features/auth/product/create/components/raw-material-table/table'
-import {useOverheadExpensesStore} from '@/features/auth/product/create/store/use-overhead-expense-store'
-import {useRawMaterialsStore} from '@/features/auth/product/create/store/use-raw-materials-store'
-import {formatCurrency} from '@/features/auth/utils/format-currency'
-import {getComputationResult} from '@/features/auth/utils/get-computation-result'
+import {getComputationResult} from '@/features/auth/product/create/computations/product-computations'
 import {
   ComputationResult,
   ProductSchema,
   ProductZodSchema,
-} from '@/types/product.schema'
+} from '@/features/auth/product/create/computations/types/product.schema'
+import {useOverheadExpensesStore} from '@/features/auth/product/create/store/use-overhead-expense-store'
+import {useRawMaterialsStore} from '@/features/auth/product/create/store/use-raw-materials-store'
+import {formatCurrency} from '@/features/auth/utils/format-currency'
 import {zodResolver} from '@hookform/resolvers/zod'
 import {createFileRoute, useNavigate} from '@tanstack/react-router'
 import {
@@ -49,6 +49,16 @@ export const Route = createFileRoute('/_auth/product/create')({
   component: CreateView,
 })
 
+import {ProfitRangeChart} from '@/features/auth/product/create/components/chart/profit-range-chart'
+import {
+  calculateFixedCosts,
+  calculateMaxQuantity,
+} from '@/features/auth/product/create/computations/lib/utils'
+import {calculateProfitRange} from '@/features/auth/product/create/computations/product-formula'
+import {ProfitRangePoint} from '@/features/auth/product/create/computations/types/product.schema'
+import {DollarSign, HelpCircle, Percent} from 'lucide-react'
+import {useState} from 'react'
+
 function CreateView() {
   const rawMaterials = useRawMaterialsStore(state => state.rawMaterials)
   const overheadExpenses = useOverheadExpensesStore(
@@ -62,7 +72,7 @@ function CreateView() {
         calculationType: 'cost-plus',
         profitValue: 0,
       },
-      desiredProductionQuantity: 0,
+      quantityProduced: 0,
       expectedSales: 0,
       rawMaterials: [],
       overheadExpenses: [],
@@ -75,10 +85,8 @@ function CreateView() {
     if (
       watchedFields.productName &&
       watchedFields.profitMarginSettings.profitValue > 0 &&
-      watchedFields.desiredProductionQuantity > 0 &&
-      watchedFields.expectedSales > 0 &&
-      rawMaterials.length > 0 &&
-      overheadExpenses.length > 0
+      watchedFields.quantityProduced > 0 &&
+      watchedFields.expectedSales > 0
     ) {
       return getComputationResult({
         ...watchedFields,
@@ -89,27 +97,41 @@ function CreateView() {
     return null
   }, [watchedFields, rawMaterials, overheadExpenses])
 
+  const profitRangeData = useMemo(() => {
+    if (computationResult) {
+      const fixedCosts = calculateFixedCosts(
+        computationResult,
+        watchedFields.quantityProduced
+      )
+      const maxQuantity = calculateMaxQuantity(
+        watchedFields.expectedSales,
+        watchedFields.quantityProduced
+      )
+      return calculateProfitRange(
+        fixedCosts,
+        computationResult.manufacturingCostPerUnit,
+        computationResult.recommendedSalesPrice,
+        maxQuantity
+      )
+    }
+    return [] as ProfitRangePoint[]
+  }, [
+    computationResult,
+    watchedFields.expectedSales,
+    watchedFields.quantityProduced,
+  ])
+
   useEffect(() => {
-    if (
-      watchedFields.productName &&
-      watchedFields.profitMarginSettings.profitValue > 0 &&
-      watchedFields.desiredProductionQuantity > 0 &&
-      watchedFields.expectedSales > 0 &&
-      rawMaterials.length > 0 &&
-      overheadExpenses.length > 0
-    ) {
-      const result = getComputationResult({
-        ...watchedFields,
-        rawMaterials,
-        overheadExpenses,
+    if (computationResult) {
+      newProductForm.setValue('computationResult', computationResult, {
+        shouldDirty: false,
       })
-      newProductForm.setValue('computationResult', result, {shouldDirty: false})
     } else {
       newProductForm.setValue('computationResult', undefined, {
         shouldDirty: false,
       })
     }
-  }, [watchedFields, rawMaterials, overheadExpenses, newProductForm])
+  }, [computationResult, newProductForm])
 
   const onSave = (data: z.infer<typeof ProductZodSchema>) => {
     if (computationResult) {
@@ -123,6 +145,21 @@ function CreateView() {
   }
 
   const navigate = useNavigate()
+  const clearRawMaterialsState = useRawMaterialsStore(
+    state => state.clearRawMaterials
+  )
+  const clearOverheadExpensesState = useOverheadExpensesStore(
+    state => state.clearOverheadExpenses
+  )
+  const discardForm = () => {
+    newProductForm.reset()
+    clearRawMaterialsState()
+    clearOverheadExpensesState()
+  }
+
+  const [calculationType, setCalculationType] = useState<
+    'cost-plus' | 'fixed-markup'
+  >('cost-plus')
 
   return (
     <div>
@@ -160,6 +197,7 @@ function CreateView() {
                   type="submit"
                   variant="outline"
                   className="w-full sm:w-auto"
+                  onClick={discardForm}
                 >
                   Discard
                 </Button>
@@ -194,17 +232,26 @@ function CreateView() {
                     <FormItem>
                       <FormLabel>Margin</FormLabel>
                       <FormControl>
-                        <Input
-                          type="number"
-                          inputMode="decimal"
-                          step="any"
-                          min="0"
-                          {...field}
-                          onChange={e => {
-                            const value = e.target.value
-                            field.onChange(value ? parseFloat(value) : '')
-                          }}
-                        />
+                        <div className="relative">
+                          <Input
+                            type="number"
+                            inputMode="decimal"
+                            step="any"
+                            min="0"
+                            {...field}
+                            onChange={e => {
+                              const value = e.target.value
+                              field.onChange(value ? parseFloat(value) : '')
+                            }}
+                          />
+                          <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
+                            {calculationType === 'cost-plus' ? (
+                              <Percent className="w-4 h-4 text-gray-400" />
+                            ) : (
+                              <DollarSign className="w-4 h-4 text-gray-400" />
+                            )}
+                          </div>
+                        </div>
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -218,20 +265,30 @@ function CreateView() {
                   <FormItem>
                     <FormLabel>Profit Calculation</FormLabel>
                     <FormControl>
-                      <Select
-                        onValueChange={field.onChange}
-                        defaultValue={field.value}
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select profit margin type" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="cost-plus">Cost Plus</SelectItem>
-                          <SelectItem value="fixed-markup">
-                            Fixed Markup
-                          </SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="relative">
+                        <Select
+                          onValueChange={value => {
+                            field.onChange(value)
+                            setCalculationType(
+                              value as 'cost-plus' | 'fixed-markup'
+                            )
+                          }}
+                          defaultValue={field.value}
+                        >
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select profit margin type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="cost-plus">Cost Plus</SelectItem>
+                            <SelectItem value="fixed-markup">
+                              Fixed Markup
+                            </SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <div className="absolute inset-y-0 right-0 flex items-center pr-8 pointer-events-none">
+                          <HelpCircle className="w-4 h-4 text-gray-400" />
+                        </div>
+                      </div>
                     </FormControl>
                     <FormMessage />
                   </FormItem>
@@ -240,10 +297,10 @@ function CreateView() {
               <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                 <FormField
                   control={newProductForm.control}
-                  name="desiredProductionQuantity"
+                  name="quantityProduced"
                   render={({field}) => (
                     <FormItem>
-                      <FormLabel>Desired Production Quantity</FormLabel>
+                      <FormLabel>Quantity Produced</FormLabel>
                       <FormControl>
                         <Input
                           type="number"
@@ -286,6 +343,22 @@ function CreateView() {
                 />
               </div>
             </Card>
+            {overheadExpenses.length > 0 && (
+              <Card className="p-6 space-y-4">
+                <div>
+                  <div className="flex flex-row justify-between w-full text-sm font-medium">
+                    <h3>Total Production Cost</h3>
+                    <h3>
+                      {formatCurrency(
+                        newProductForm.getValues(
+                          'computationResult.totalManufacturingCost'
+                        )
+                      )}
+                    </h3>
+                  </div>
+                </div>
+              </Card>
+            )}
             <Card className="p-6 space-y-4">
               <div className="space-y-2">
                 <div className="flex flex-row items-baseline justify-between">
@@ -338,10 +411,34 @@ function CreateView() {
             </Card>
           </form>
         </Form>
-        <div>
+        <div className="space-y-2">
+          {computationResult && (
+            <div>
+              <ProfitRangeChart
+                quantityProduced={newProductForm.getValues('quantityProduced')}
+                profitMarginSettings={newProductForm.getValues(
+                  'profitMarginSettings'
+                )}
+                profitRange={profitRangeData}
+                totalCost={computationResult.totalManufacturingCost}
+                totalRevenue={
+                  computationResult.recommendedSalesPrice *
+                  watchedFields.expectedSales
+                }
+                maxQuantity={calculateMaxQuantity(
+                  watchedFields.expectedSales,
+                  watchedFields.quantityProduced
+                )}
+                expectedSales={watchedFields.expectedSales}
+                breakEvenPoint={computationResult.breakEvenPoint}
+              />
+            </div>
+          )}
+
           <ComputationResultDisplay
             result={computationResult}
             expectedSales={newProductForm.getValues('expectedSales')}
+            input={newProductForm.getValues()}
           />
         </div>
       </div>
@@ -349,12 +446,23 @@ function CreateView() {
   )
 }
 
+export type MetricType = {
+  title: string
+  value: string
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
+  description: string
+  formula: string
+  computation: string
+}
+
 function ComputationResultDisplay({
   result,
   expectedSales,
+  input,
 }: {
   result: ComputationResult | null
   expectedSales: number
+  input: Partial<ProductSchema>
 }) {
   if (!result) {
     return (
@@ -375,11 +483,11 @@ function ComputationResultDisplay({
 
   const getStatusColor = (metric: string, value: number): string => {
     switch (metric) {
-      case 'Manufacturing Cost Per Unit':
-        return value <= 0.7 * result.recommendedRetailPrice
+      case 'Production Cost Per Unit':
+        return value <= 0.7 * result.recommendedSalesPrice
           ? 'text-green-600'
           : 'text-red-600'
-      case 'Recommended Retail Price':
+      case 'Recommended Sale Price':
         return value >= 1.3 * result.manufacturingCostPerUnit &&
           value <= 1.5 * result.manufacturingCostPerUnit
           ? 'text-green-600'
@@ -390,14 +498,14 @@ function ComputationResultDisplay({
           : value > 0.8 * expectedSales
             ? 'text-red-600'
             : 'text-yellow-600'
-      case 'Profit Per Unit':
-        return value >= 0.2 * result.recommendedRetailPrice
+      case 'Profit Per Sale':
+        return value >= 0.2 * result.recommendedSalesPrice
           ? 'text-green-600'
           : value < 0
             ? 'text-red-600'
             : 'text-yellow-600'
       case 'Total Potential Profit':
-        return value > 0.2 * (result.recommendedRetailPrice * expectedSales)
+        return value > 0.2 * (result.recommendedSalesPrice * expectedSales)
           ? 'text-green-600'
           : value < 0
             ? 'text-red-600'
@@ -409,7 +517,7 @@ function ComputationResultDisplay({
             ? 'text-red-600'
             : 'text-yellow-600'
       case 'Contribution Margin':
-        return value >= 0.3 * result.recommendedRetailPrice
+        return value >= 0.3 * result.recommendedSalesPrice
           ? 'text-green-600'
           : value < 0
             ? 'text-red-600'
@@ -419,44 +527,75 @@ function ComputationResultDisplay({
     }
   }
 
-  const metrics = [
+  const metrics: MetricType[] = [
     {
-      title: 'Manufacturing Cost Per Unit',
+      title: 'Production Cost Per Unit',
       value: formatCurrency(result.manufacturingCostPerUnit),
       icon: TruckIcon,
+      description:
+        'The total cost of producing one unit, including raw materials, labor, and overhead expenses.',
+      formula: 'Total Manufacturing Cost / Quantity Produced',
+      computation: `${formatCurrency(result.totalManufacturingCost)} / ${input.quantityProduced} = ${formatCurrency(result.manufacturingCostPerUnit)}`,
     },
     {
-      title: 'Recommended Retail Price',
-      value: formatCurrency(result.recommendedRetailPrice),
+      title: 'Recommended Sale Price',
+      value: formatCurrency(result.recommendedSalesPrice),
       icon: Currency,
+      description:
+        'The suggested selling price per unit, based on the production cost and desired profit margin.',
+      formula:
+        'Production Cost Per Unit + (Production Cost Per Unit × Profit Margin)',
+      computation: `${formatCurrency(result.manufacturingCostPerUnit)} + (${formatCurrency(result.manufacturingCostPerUnit)} × ${(input.profitMarginSettings?.profitValue ?? 0 / 100).toFixed(2)}) = ${formatCurrency(result.recommendedSalesPrice)}`,
     },
     {
       title: 'Break-Even Point',
       value: result.breakEvenPoint.toFixed(2),
       icon: ScaleIcon,
+      description:
+        'The number of units that need to be sold to cover all costs, where total revenue equals total expenses.',
+      formula:
+        'Total Fixed Costs / (Sale Price Per Unit - Variable Cost Per Unit)',
+      computation: `${formatCurrency(result.totalManufacturingCost)} / (${formatCurrency(result.recommendedSalesPrice)} - ${formatCurrency(result.manufacturingCostPerUnit)}) = ${result.breakEvenPoint.toFixed(2)} units`,
     },
     {
-      title: 'Profit Per Unit',
+      title: 'Profit Per Sale',
       value: formatCurrency(result.profitPerUnit),
       icon: ArrowUp,
+      description: 'The amount of profit generated from selling one unit.',
+      formula: 'Recommended Sale Price - Production Cost Per Unit',
+      computation: `${formatCurrency(result.recommendedSalesPrice)} - ${formatCurrency(result.manufacturingCostPerUnit)} = ${formatCurrency(result.profitPerUnit)}`,
     },
     {
       title: 'Total Potential Profit',
       value: formatCurrency(result.totalPotentialProfit),
       icon: Currency,
+      description:
+        'The maximum profit that can be achieved if all expected units are sold.',
+      formula:
+        '(Recommended Sale Price - Production Cost Per Unit) × Expected Sales',
+      computation: `(${formatCurrency(result.recommendedSalesPrice)} - ${formatCurrency(result.manufacturingCostPerUnit)}) × ${expectedSales} = ${formatCurrency(result.totalPotentialProfit)}`,
     },
     {
       title: 'Margin of Safety',
       value: `${result.marginOfSafety.toFixed(2)}%`,
       icon: ScaleIcon,
+      description:
+        'The percentage by which actual sales can decrease before reaching the break-even point.',
+      formula: '(Expected Sales - Break-Even Point) / Expected Sales × 100',
+      computation: `(${expectedSales} - ${result.breakEvenPoint.toFixed(2)}) / ${expectedSales} × 100 = ${result.marginOfSafety.toFixed(2)}%`,
     },
     {
       title: 'Contribution Margin',
-      value: formatCurrency(result.contributionMargin),
+      value: formatCurrency(
+        result.recommendedSalesPrice - result.manufacturingCostPerUnit
+      ),
       icon: ArrowUp,
+      description:
+        'The amount each unit contributes to covering fixed costs and generating profit.',
+      formula: 'Recommended Sale Price - Production Cost Per Unit',
+      computation: `${formatCurrency(result.recommendedSalesPrice)} - ${formatCurrency(result.manufacturingCostPerUnit)} = ${formatCurrency(result.recommendedSalesPrice - result.manufacturingCostPerUnit)}`,
     },
   ]
-
   return (
     <div className="space-y-2">
       <div className="grid grid-cols-1 gap-2">
@@ -480,23 +619,28 @@ const FinancialMetric = ({
   value,
   icon: Icon,
   status,
-}: {
-  title: string
-  value: string
-  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>
-  status: string
-}) => (
-  <Card className="bg-white">
-    <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
-      <CardTitle className="text-sm font-medium text-gray-500">
-        {title}
-      </CardTitle>
-      <Icon className={`w-4 h-4 ${status}`} />
-    </CardHeader>
-    <CardContent>
-      <div className={`text-2xl font-bold ${status}`}>{value}</div>
-    </CardContent>
-  </Card>
-)
-
-export default CreateView
+  description,
+  formula,
+  computation,
+}: MetricType & {status: string}) => {
+  return (
+    <Card className="bg-white">
+      <CardHeader className="flex flex-row items-center justify-between pb-2 space-y-0">
+        <CardTitle className="text-sm font-medium text-gray-500">
+          {title}
+        </CardTitle>
+        <Icon className={`w-4 h-4 ${status}`} />
+      </CardHeader>
+      <CardContent>
+        <div className={`text-2xl font-bold ${status}`}>{value}</div>
+        <div className="mt-2 text-sm text-gray-600">
+          <p className="mb-2 text-sm">{description}</p>
+          <div className="pt-2 space-y-2">
+            <p className="font-mono text-xs text-center">{formula}</p>
+            <p className="font-mono text-xs text-center">{computation}</p>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  )
+}

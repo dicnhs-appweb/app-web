@@ -1,5 +1,5 @@
-import {RawMaterial} from '@/types/product.schema';
 import {create} from 'zustand';
+import {RawMaterial} from '../computations/types/product.schema';
 
 interface RawMaterialsState {
   rawMaterials: RawMaterial[];

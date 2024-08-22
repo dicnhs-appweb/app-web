@@ -1,6 +1,6 @@
 import {ProductSchema} from '@/types/product.schema';
 import * as productComputations from '../computation/product-computations';
-import {getComputationResult} from '../get-computation-result';
+import {getComputationResult} from '../get-computation-result.v1';
 
 jest.mock('../computation/sub-computations', () => ({
   calculateTotalOverheadCost: jest.fn().mockReturnValue(50),
@@ -353,7 +353,7 @@ describe('Product Computation Tests', () => {
           {expenseName: 'Test', totalUnits: 1, costPerUnit: 1 / 3},
         ],
       });
-      expect(result.manufacturingCostPerUnit).toBeCloseTo(2 / 3, 10);
+      expect(result.production).toBeCloseTo(2 / 3, 10);
     });
   });
 });
