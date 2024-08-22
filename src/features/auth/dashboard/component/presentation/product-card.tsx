@@ -33,9 +33,9 @@ export const ProductCard = React.memo(({data}: {data: ProductCardProps}) => {
   const getProfitMarginText = useMemo(
     () => () => {
       if (profitMarginSettings.calculationType === 'percentage') {
-        return `${profitMarginSettings.percentageValue}%`
+        return `${profitMarginSettings.profitValue}%`
       } else {
-        return formatCurrency(profitMarginSettings.percentageValue)
+        return formatCurrency(profitMarginSettings.profitValue)
       }
     },
     [profitMarginSettings, formatCurrency]

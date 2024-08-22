@@ -1,5 +1,5 @@
 import React, {createContext, useContext, useEffect, useState} from 'react'
-import {useAuthStore, useCheckAuth} from './auth-store'
+import {useAuthStore, useCheckAuth} from './use-auth-store'
 
 export const AuthContext = createContext<
   ReturnType<typeof useAuthStore> | undefined
@@ -25,6 +25,7 @@ export const AuthProvider = ({children}: {children: React.ReactNode}) => {
       setIsInitialized(true)
     }
     initializeAuth()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   if (!isInitialized) {
@@ -36,6 +37,7 @@ export const AuthProvider = ({children}: {children: React.ReactNode}) => {
   )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useAuth = () => {
   const context = useContext(AuthContext)
   if (context === undefined) {
@@ -46,7 +48,7 @@ export const useAuth = () => {
 
 export default function AuthenticationLoading() {
   return (
-    <div className="flex flex-row h-screen justify-center items-center transition-all duration-300 animate-fadeOut">
+    <div className="flex flex-row items-center justify-center h-screen transition-all duration-300 animate-fadeOut">
       <img src="/app-web.png" width={100} height={100} />
     </div>
   )

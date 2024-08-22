@@ -17,7 +17,9 @@ import { Route as PublicIndexImport } from './routes/_public/index'
 import { Route as PublicRegisterImport } from './routes/_public/register'
 import { Route as PublicLoginImport } from './routes/_public/login'
 import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
-import { Route as AuthProductIdImport } from './routes/_auth/product/$id'
+import { Route as AuthProductCreateImport } from './routes/_auth/product/create'
+import { Route as AuthProductViewIdImport } from './routes/_auth/product/view.$id'
+import { Route as AuthProductEditIdImport } from './routes/_auth/product/edit.$id'
 
 // Create/Update Routes
 
@@ -51,8 +53,18 @@ const AuthDashboardRoute = AuthDashboardImport.update({
   getParentRoute: () => AuthRoute,
 } as any)
 
-const AuthProductIdRoute = AuthProductIdImport.update({
-  path: '/product/$id',
+const AuthProductCreateRoute = AuthProductCreateImport.update({
+  path: '/product/create',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthProductViewIdRoute = AuthProductViewIdImport.update({
+  path: '/product/view/$id',
+  getParentRoute: () => AuthRoute,
+} as any)
+
+const AuthProductEditIdRoute = AuthProductEditIdImport.update({
+  path: '/product/edit/$id',
   getParentRoute: () => AuthRoute,
 } as any)
 
@@ -102,11 +114,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof PublicIndexImport
       parentRoute: typeof PublicImport
     }
-    '/_auth/product/$id': {
-      id: '/_auth/product/$id'
-      path: '/product/$id'
-      fullPath: '/product/$id'
-      preLoaderRoute: typeof AuthProductIdImport
+    '/_auth/product/create': {
+      id: '/_auth/product/create'
+      path: '/product/create'
+      fullPath: '/product/create'
+      preLoaderRoute: typeof AuthProductCreateImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/product/edit/$id': {
+      id: '/_auth/product/edit/$id'
+      path: '/product/edit/$id'
+      fullPath: '/product/edit/$id'
+      preLoaderRoute: typeof AuthProductEditIdImport
+      parentRoute: typeof AuthImport
+    }
+    '/_auth/product/view/$id': {
+      id: '/_auth/product/view/$id'
+      path: '/product/view/$id'
+      fullPath: '/product/view/$id'
+      preLoaderRoute: typeof AuthProductViewIdImport
       parentRoute: typeof AuthImport
     }
   }
@@ -115,7 +141,12 @@ declare module '@tanstack/react-router' {
 // Create and export the route tree
 
 export const routeTree = rootRoute.addChildren({
-  AuthRoute: AuthRoute.addChildren({ AuthDashboardRoute, AuthProductIdRoute }),
+  AuthRoute: AuthRoute.addChildren({
+    AuthDashboardRoute,
+    AuthProductCreateRoute,
+    AuthProductEditIdRoute,
+    AuthProductViewIdRoute,
+  }),
   PublicRoute: PublicRoute.addChildren({
     PublicLoginRoute,
     PublicRegisterRoute,
@@ -139,7 +170,9 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_auth.tsx",
       "children": [
         "/_auth/dashboard",
-        "/_auth/product/$id"
+        "/_auth/product/create",
+        "/_auth/product/edit/$id",
+        "/_auth/product/view/$id"
       ]
     },
     "/_public": {
@@ -166,8 +199,16 @@ export const routeTree = rootRoute.addChildren({
       "filePath": "_public/index.tsx",
       "parent": "/_public"
     },
-    "/_auth/product/$id": {
-      "filePath": "_auth/product/$id.tsx",
+    "/_auth/product/create": {
+      "filePath": "_auth/product/create.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/product/edit/$id": {
+      "filePath": "_auth/product/edit.$id.tsx",
+      "parent": "/_auth"
+    },
+    "/_auth/product/view/$id": {
+      "filePath": "_auth/product/view.$id.tsx",
       "parent": "/_auth"
     }
   }

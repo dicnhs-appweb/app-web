@@ -1,38 +1,48 @@
 import * as z from 'zod';
 
 export const OverheadExpenseSchema = z.object({
-  expenseCategory: z.string(),
-  costPerUnit: z.number(),
+  expenseName: z.string(),
+  totalUnits: z.number().min(0, 'Total units must be a positive number'),
+  costPerUnit: z.number().min(0, 'Cost per unit must be a positive number'),
 });
 export type OverheadExpense = z.infer<typeof OverheadExpenseSchema>;
 
-export const ProductionForecastSchema = z.object({
-  maximumUnitsProducible: z.number(),
-  productionConstraint: z.string().optional(),
-});
-export type ProductionForecast = z.infer<typeof ProductionForecastSchema>;
-
 export const ProfitMarginSettingsSchema = z.object({
-  calculationType: z.enum(['percentage', 'fixed']),
-  percentageValue: z.number(),
+  calculationType: z.enum(['cost-plus', 'fixed-markup']),
+  profitValue: z.number().min(0),
 });
+
 export type ProfitMarginSettings = z.infer<typeof ProfitMarginSettingsSchema>;
 
 export const RawMaterialSchema = z.object({
-  ingredientName: z.string(),
-  stockOnHand: z.number(),
-  quantityNeededPerUnit: z.number(),
-  costPerUnit: z.number(),
+  materialName: z.string(),
+  totalUnits: z.number().min(0, 'Total units must be a positive number'),
+  costPerUnit: z.number().min(0, 'Cost per unit must be a positive number'),
 });
 export type RawMaterial = z.infer<typeof RawMaterialSchema>;
 
-export const ProductSchemaSchema = z.object({
-  productName: z.string(),
+export const ComputationResultSchema = z.object({
   manufacturingCostPerUnit: z.number(),
-  profitMarginSettings: ProfitMarginSettingsSchema,
   recommendedRetailPrice: z.number(),
-  productionForecast: ProductionForecastSchema,
-  rawMaterials: z.array(RawMaterialSchema),
-  overheadExpenses: z.array(OverheadExpenseSchema),
+  breakEvenPoint: z.number(),
+  profitPerUnit: z.number(),
+  totalPotentialProfit: z.number(),
+  marginOfSafety: z.number(),
+  contributionMargin: z.number(),
 });
-export type ProductSchema = z.infer<typeof ProductSchemaSchema>;
+export type ComputationResult = z.infer<typeof ComputationResultSchema>;
+
+export const ProductZodSchema = z.object({
+  productName: z.string(),
+  profitMarginSettings: ProfitMarginSettingsSchema,
+  desiredProductionQuantity: z
+    .number()
+    .min(0, 'Desired production quantity must be a non-negative number'),
+  expectedSales: z
+    .number()
+    .min(0, 'Expected sales must be a non-negative number'),
+  rawMaterials: z.array(RawMaterialSchema).optional(),
+  overheadExpenses: z.array(OverheadExpenseSchema).optional(),
+  computationResult: ComputationResultSchema.optional(),
+});
+export type ProductSchema = z.infer<typeof ProductZodSchema>;

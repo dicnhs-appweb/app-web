@@ -1,13 +1,15 @@
-export type calculationType = "percentage" | "fixed";
+export type calculationType = 'percentage' | 'fixed';
 
 export interface ProductType {
+  // input
   productName: string;
-  manufacturingCostPerUnit?: number;
   profitMarginSettings: ProfitMarginSettings;
-  recommendedRetailPrice?: number;
-  productionForecast?: ProductionForecast;
   rawMaterials: RawMaterial[];
   overheadExpenses: OverheadExpense[];
+  // output
+  productionForecast?: ProductionForecast;
+  recommendedRetailPrice?: number;
+  manufacturingCostPerUnit?: number;
 }
 
 export interface OverheadExpense {
@@ -15,19 +17,19 @@ export interface OverheadExpense {
   costPerUnit: number;
 }
 
-export interface ProductionForecast {
-  maximumUnitsProducible: number;
-  productionConstraint: string | undefined;
-}
-
 export interface ProfitMarginSettings {
   calculationType: calculationType;
-  percentageValue: number;
+  profitValue: number;
 }
 
 export interface RawMaterial {
-  ingredientName: string;
+  materialName: string;
   stockOnHand: number;
   quantityNeededPerUnit: number;
   costPerUnit: number;
+}
+
+export interface ProductionForecast {
+  maximumUnitsProducible: number;
+  productionConstraint: string | undefined;
 }

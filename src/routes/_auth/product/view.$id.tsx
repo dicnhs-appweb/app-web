@@ -4,7 +4,7 @@ import {useSuspenseQuery} from '@tanstack/react-query'
 import {createFileRoute} from '@tanstack/react-router'
 import {z} from 'zod'
 
-export const Route = createFileRoute('/_auth/product/$id')({
+export const Route = createFileRoute('/_auth/product/view/$id')({
   params: {
     parse: params => ({
       id: z
@@ -27,17 +27,17 @@ function ViewProductComponent() {
   const product = productQuery.data as ProductType
 
   return (
-    <div className="container mx-auto p-4">
-      <h1 className="text-2xl font-bold mb-4">Product Details</h1>
-      <div className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
+    <div className="container p-4 mx-auto">
+      <h1 className="mb-4 text-2xl font-bold">Product Details</h1>
+      <div className="px-8 pt-6 pb-8 mb-4 bg-white rounded shadow-md">
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Product Name:
           </label>
           <p className="text-gray-900">{product.productName}</p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Manufacturing Cost Per Unit:
           </label>
           <p className="text-gray-900">
@@ -45,16 +45,16 @@ function ViewProductComponent() {
           </p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Profit Margin Settings:
           </label>
           <p className="text-gray-900">
             Type: {product.profitMarginSettings.calculationType}, Value:{' '}
-            {product.profitMarginSettings.percentageValue}%
+            {product.profitMarginSettings.profitValue}%
           </p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Recommended Retail Price:
           </label>
           <p className="text-gray-900">
@@ -62,7 +62,7 @@ function ViewProductComponent() {
           </p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Production Forecast:
           </label>
           <p className="text-gray-900">
@@ -73,24 +73,24 @@ function ViewProductComponent() {
           </p>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Raw Materials:
           </label>
-          <ul className="list-disc pl-5">
+          <ul className="pl-5 list-disc">
             {product.rawMaterials.map((material, index) => (
               <li key={index} className="mb-2">
-                {material.ingredientName}: {material.quantityNeededPerUnit}{' '}
-                units needed, ${material.costPerUnit.toFixed(2)} per unit,
+                {material.materialName}: {material.quantityNeededPerUnit} units
+                needed, ${material.costPerUnit.toFixed(2)} per unit,
                 {material.stockOnHand} in stock
               </li>
             ))}
           </ul>
         </div>
         <div className="mb-4">
-          <label className="block text-gray-700 text-sm font-bold mb-2">
+          <label className="block mb-2 text-sm font-bold text-gray-700">
             Overhead Expenses:
           </label>
-          <ul className="list-disc pl-5">
+          <ul className="pl-5 list-disc">
             {product.overheadExpenses.map((expense, index) => (
               <li key={index}>
                 {expense.expenseCategory}: ${expense.costPerUnit.toFixed(2)} per

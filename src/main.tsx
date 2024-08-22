@@ -3,7 +3,7 @@ import {RouterProvider, createRouter} from '@tanstack/react-router'
 import {StrictMode} from 'react'
 import ReactDOM from 'react-dom/client'
 import {AuthProvider} from './features/auth/authenticate/auth-context'
-import {useAuthStore} from './features/auth/authenticate/auth-store'
+import {useAuthStore} from './features/auth/authenticate/use-auth-store'
 import './index.css'
 import {routeTree} from './routeTree.gen'
 

@@ -3,7 +3,7 @@ import {
   ProfitMarginSettings,
   RawMaterial,
 } from '@/types/product.schema';
-import {calculationType} from '@/types/product.type';
+import Decimal from 'decimal.js';
 import {
   calculateTotalOverheadCost,
   calculateTotalRawMaterialCost,
@@ -13,56 +13,101 @@ function calculateManufacturingCostPerUnit(
   rawMaterials: RawMaterial[],
   overheadExpenses: OverheadExpense[]
 ): number {
-  /**
-   * formula: manufacturingCostPerUnit = (totalRawMaterialCost + totalOverheadCost)
-   * note: this is per unit, so we multiply by 1 in the totalOverheadCost calculation
-   */
-  const rawMaterialCost = calculateTotalRawMaterialCost(rawMaterials);
-  const overheadCost = calculateTotalOverheadCost(overheadExpenses, 1);
-  return Number((rawMaterialCost + overheadCost).toFixed(2));
+  const rawMaterialCost = new Decimal(
+    calculateTotalRawMaterialCost(rawMaterials)
+  );
+  const overheadCost = new Decimal(
+    calculateTotalOverheadCost(overheadExpenses)
+  );
+  return rawMaterialCost.plus(overheadCost).toDecimalPlaces(2).toNumber();
 }
 
 function calculateRecommendedRetailPrice(
   manufacturingCostPerUnit: number,
   profitMarginSettings: ProfitMarginSettings
 ): number {
-  const {calculationType, percentageValue} = profitMarginSettings;
-  /**
-   * if calculationType is percentage => recommendedRetailPrice = manufacturingCostPerUnit * (1 + profitMargin / 100)
-   * if calculationType === "fixed" => recommendedRetailPrice = manufacturingCostPerUnit + percentageValue
-   */
+  const {calculationType, profitValue} = profitMarginSettings;
+  const cost = new Decimal(manufacturingCostPerUnit);
+  const profit = new Decimal(profitValue);
+
   const price =
-    calculationType === 'percentage'
-      ? manufacturingCostPerUnit * (1 + percentageValue / 100)
-      : manufacturingCostPerUnit + percentageValue;
-  return Number(price.toFixed(2));
-}
-function calculateMaximumUnitsProducible(rawMaterials: RawMaterial[]): number {
-  return rawMaterials.reduce((minUnits, material) => {
-    const materialUnits = Math.floor(
-      material.stockOnHand / material.quantityNeededPerUnit
-    ); // formula: materialUnits = stockOnHand / quantityNeededPerUnit
-    return Math.min(minUnits, materialUnits); // formula: maximumUnitsProducible = min(minUnits, materialUnits)
-  }, Infinity);
+    calculationType === 'fixed-markup'
+      ? cost.plus(profit)
+      : cost.times(Decimal.sum(1, profit.dividedBy(100)));
+
+  return price.toDecimalPlaces(2).toNumber();
 }
 
-function calculateProfitMargin(
+function calculateBreakEvenPoint(
+  overheadExpenses: OverheadExpense[],
+  rawMaterials: RawMaterial[],
+  recommendedRetailPrice: number
+): number {
+  const fixedCosts = new Decimal(calculateTotalOverheadCost(overheadExpenses));
+  const variableCostPerUnit = new Decimal(
+    calculateTotalRawMaterialCost(rawMaterials)
+  );
+  const contributionMargin = new Decimal(recommendedRetailPrice).minus(
+    variableCostPerUnit
+  );
+
+  return fixedCosts.dividedBy(contributionMargin).toDecimalPlaces(2).toNumber();
+}
+
+function calculateProfitPerUnit(
   recommendedRetailPrice: number,
   manufacturingCostPerUnit: number
-): ProfitMarginSettings {
-  // formula: profit = recommendedRetailPrice - manufacturingCostPerUnit
-  const profit = recommendedRetailPrice - manufacturingCostPerUnit;
-  // formula: profitMargin = (profit / manufacturingCostPerUnit) * 10
-  const percentageValue = (profit / manufacturingCostPerUnit) * 100;
-  return {
-    calculationType: 'percentage' as calculationType,
-    percentageValue: Number(percentageValue.toFixed(2)),
-  };
+): number {
+  return new Decimal(recommendedRetailPrice)
+    .minus(manufacturingCostPerUnit)
+    .toDecimalPlaces(2)
+    .toNumber();
+}
+
+function calculateTotalPotentialProfit(
+  profitPerUnit: number,
+  desiredProductionQuantity: number
+): number {
+  return new Decimal(profitPerUnit)
+    .times(desiredProductionQuantity)
+    .toDecimalPlaces(2)
+    .toNumber();
+}
+
+function calculateMarginOfSafety(
+  expectedSalesQuantity: number,
+  breakEvenPoint: number
+): number {
+  if (expectedSalesQuantity <= 0) {
+    return 0;
+  }
+  return new Decimal(expectedSalesQuantity)
+    .minus(breakEvenPoint)
+    .dividedBy(expectedSalesQuantity)
+    .times(100)
+    .toDecimalPlaces(2)
+    .toNumber();
+}
+
+function calculateContributionMargin(
+  recommendedRetailPrice: number,
+  rawMaterials: RawMaterial[]
+): number {
+  const variableCostPerUnit = new Decimal(
+    calculateTotalRawMaterialCost(rawMaterials)
+  );
+  return new Decimal(recommendedRetailPrice)
+    .minus(variableCostPerUnit)
+    .toDecimalPlaces(2)
+    .toNumber();
 }
 
 export {
+  calculateBreakEvenPoint,
+  calculateContributionMargin,
   calculateManufacturingCostPerUnit,
-  calculateMaximumUnitsProducible,
-  calculateProfitMargin,
+  calculateMarginOfSafety,
+  calculateProfitPerUnit,
   calculateRecommendedRetailPrice,
+  calculateTotalPotentialProfit,
 };

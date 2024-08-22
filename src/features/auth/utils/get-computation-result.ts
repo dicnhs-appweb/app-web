@@ -1,28 +1,19 @@
-import { ProductSchema } from "@/types/product.schema";
-import { ProfitMarginSettings } from "@/types/product.type";
+import {ComputationResult, ProductSchema} from '@/types/product.schema';
 import {
+  calculateBreakEvenPoint,
+  calculateContributionMargin,
   calculateManufacturingCostPerUnit,
-  calculateMaximumUnitsProducible,
-  calculateProfitMargin,
+  calculateMarginOfSafety,
+  calculateProfitPerUnit,
   calculateRecommendedRetailPrice,
-} from "./computation/product-computations";
-import validateProductSchema from "./validator/main-validators";
-
-export type ComputationResult = {
-  manufacturingCostPerUnit: number;
-  recommendedRetailPrice: number;
-  maximumUnitsProducible: number;
-  profitMargin: ProfitMarginSettings;
-};
+  calculateTotalPotentialProfit,
+} from './computation/product-computations';
 
 export const getComputationResult = (
   product: ProductSchema
 ): ComputationResult => {
-  if (!validateProductSchema(product)) {
-    throw new Error("Invalid product schema");
-  }
-
-  const { rawMaterials, overheadExpenses, profitMarginSettings } = product;
+  const {rawMaterials, overheadExpenses, profitMarginSettings, expectedSales} =
+    product;
 
   const manufacturingCostPerUnit = calculateManufacturingCostPerUnit(
     rawMaterials,
@@ -32,16 +23,32 @@ export const getComputationResult = (
     manufacturingCostPerUnit,
     profitMarginSettings
   );
-  const maximumUnitsProducible = calculateMaximumUnitsProducible(rawMaterials);
-  const profitMargin = calculateProfitMargin(
+  const breakEvenPoint = calculateBreakEvenPoint(
+    overheadExpenses,
+    rawMaterials,
+    recommendedRetailPrice
+  );
+  const profitPerUnit = calculateProfitPerUnit(
     recommendedRetailPrice,
     manufacturingCostPerUnit
+  );
+  const marginOfSafety = calculateMarginOfSafety(expectedSales, breakEvenPoint);
+  const totalPotentialProfit = calculateTotalPotentialProfit(
+    profitPerUnit,
+    expectedSales
+  );
+  const contributionMargin = calculateContributionMargin(
+    recommendedRetailPrice,
+    rawMaterials
   );
 
   return {
     manufacturingCostPerUnit,
     recommendedRetailPrice,
-    maximumUnitsProducible,
-    profitMargin,
+    breakEvenPoint,
+    profitPerUnit,
+    totalPotentialProfit,
+    marginOfSafety,
+    contributionMargin,
   };
 };

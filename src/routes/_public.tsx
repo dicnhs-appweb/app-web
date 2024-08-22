@@ -1,4 +1,4 @@
-import {useAuthStore} from '@/features/auth/authenticate/auth-store'
+import {useAuthStore} from '@/features/auth/authenticate/use-auth-store'
 import {Outlet, createFileRoute, redirect} from '@tanstack/react-router'
 
 export const Route = createFileRoute('/_public')({
