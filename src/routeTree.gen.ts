@@ -11,162 +11,32 @@
 // Import Routes
 
 import { Route as rootRoute } from './routes/__root'
-import { Route as PublicImport } from './routes/_public'
-import { Route as AuthImport } from './routes/_auth'
-import { Route as PublicIndexImport } from './routes/_public/index'
-import { Route as PublicRegisterImport } from './routes/_public/register'
-import { Route as PublicLoginImport } from './routes/_public/login'
-import { Route as AuthTestImport } from './routes/_auth/test'
-import { Route as AuthDashboardImport } from './routes/_auth/dashboard'
-import { Route as AuthProductCreateImport } from './routes/_auth/product/create'
-import { Route as AuthProductViewIdImport } from './routes/_auth/product/view.$id'
-import { Route as AuthProductEditIdImport } from './routes/_auth/product/edit.$id'
+import { Route as IndexImport } from './routes/index'
 
 // Create/Update Routes
 
-const PublicRoute = PublicImport.update({
-  id: '/_public',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const AuthRoute = AuthImport.update({
-  id: '/_auth',
-  getParentRoute: () => rootRoute,
-} as any)
-
-const PublicIndexRoute = PublicIndexImport.update({
+const IndexRoute = IndexImport.update({
   path: '/',
-  getParentRoute: () => PublicRoute,
-} as any)
-
-const PublicRegisterRoute = PublicRegisterImport.update({
-  path: '/register',
-  getParentRoute: () => PublicRoute,
-} as any)
-
-const PublicLoginRoute = PublicLoginImport.update({
-  path: '/login',
-  getParentRoute: () => PublicRoute,
-} as any)
-
-const AuthTestRoute = AuthTestImport.update({
-  path: '/test',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthDashboardRoute = AuthDashboardImport.update({
-  path: '/dashboard',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthProductCreateRoute = AuthProductCreateImport.update({
-  path: '/product/create',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthProductViewIdRoute = AuthProductViewIdImport.update({
-  path: '/product/view/$id',
-  getParentRoute: () => AuthRoute,
-} as any)
-
-const AuthProductEditIdRoute = AuthProductEditIdImport.update({
-  path: '/product/edit/$id',
-  getParentRoute: () => AuthRoute,
+  getParentRoute: () => rootRoute,
 } as any)
 
 // Populate the FileRoutesByPath interface
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/_auth': {
-      id: '/_auth'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof AuthImport
-      parentRoute: typeof rootRoute
-    }
-    '/_public': {
-      id: '/_public'
-      path: ''
-      fullPath: ''
-      preLoaderRoute: typeof PublicImport
-      parentRoute: typeof rootRoute
-    }
-    '/_auth/dashboard': {
-      id: '/_auth/dashboard'
-      path: '/dashboard'
-      fullPath: '/dashboard'
-      preLoaderRoute: typeof AuthDashboardImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/test': {
-      id: '/_auth/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof AuthTestImport
-      parentRoute: typeof AuthImport
-    }
-    '/_public/login': {
-      id: '/_public/login'
-      path: '/login'
-      fullPath: '/login'
-      preLoaderRoute: typeof PublicLoginImport
-      parentRoute: typeof PublicImport
-    }
-    '/_public/register': {
-      id: '/_public/register'
-      path: '/register'
-      fullPath: '/register'
-      preLoaderRoute: typeof PublicRegisterImport
-      parentRoute: typeof PublicImport
-    }
-    '/_public/': {
-      id: '/_public/'
+    '/': {
+      id: '/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof PublicIndexImport
-      parentRoute: typeof PublicImport
-    }
-    '/_auth/product/create': {
-      id: '/_auth/product/create'
-      path: '/product/create'
-      fullPath: '/product/create'
-      preLoaderRoute: typeof AuthProductCreateImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/product/edit/$id': {
-      id: '/_auth/product/edit/$id'
-      path: '/product/edit/$id'
-      fullPath: '/product/edit/$id'
-      preLoaderRoute: typeof AuthProductEditIdImport
-      parentRoute: typeof AuthImport
-    }
-    '/_auth/product/view/$id': {
-      id: '/_auth/product/view/$id'
-      path: '/product/view/$id'
-      fullPath: '/product/view/$id'
-      preLoaderRoute: typeof AuthProductViewIdImport
-      parentRoute: typeof AuthImport
+      preLoaderRoute: typeof IndexImport
+      parentRoute: typeof rootRoute
     }
   }
 }
 
 // Create and export the route tree
 
-export const routeTree = rootRoute.addChildren({
-  AuthRoute: AuthRoute.addChildren({
-    AuthDashboardRoute,
-    AuthTestRoute,
-    AuthProductCreateRoute,
-    AuthProductEditIdRoute,
-    AuthProductViewIdRoute,
-  }),
-  PublicRoute: PublicRoute.addChildren({
-    PublicLoginRoute,
-    PublicRegisterRoute,
-    PublicIndexRoute,
-  }),
-})
+export const routeTree = rootRoute.addChildren({ IndexRoute })
 
 /* prettier-ignore-end */
 
@@ -176,59 +46,11 @@ export const routeTree = rootRoute.addChildren({
     "__root__": {
       "filePath": "__root.tsx",
       "children": [
-        "/_auth",
-        "/_public"
+        "/"
       ]
     },
-    "/_auth": {
-      "filePath": "_auth.tsx",
-      "children": [
-        "/_auth/dashboard",
-        "/_auth/test",
-        "/_auth/product/create",
-        "/_auth/product/edit/$id",
-        "/_auth/product/view/$id"
-      ]
-    },
-    "/_public": {
-      "filePath": "_public.tsx",
-      "children": [
-        "/_public/login",
-        "/_public/register",
-        "/_public/"
-      ]
-    },
-    "/_auth/dashboard": {
-      "filePath": "_auth/dashboard.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/test": {
-      "filePath": "_auth/test.tsx",
-      "parent": "/_auth"
-    },
-    "/_public/login": {
-      "filePath": "_public/login.tsx",
-      "parent": "/_public"
-    },
-    "/_public/register": {
-      "filePath": "_public/register.tsx",
-      "parent": "/_public"
-    },
-    "/_public/": {
-      "filePath": "_public/index.tsx",
-      "parent": "/_public"
-    },
-    "/_auth/product/create": {
-      "filePath": "_auth/product/create.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/product/edit/$id": {
-      "filePath": "_auth/product/edit.$id.tsx",
-      "parent": "/_auth"
-    },
-    "/_auth/product/view/$id": {
-      "filePath": "_auth/product/view.$id.tsx",
-      "parent": "/_auth"
+    "/": {
+      "filePath": "index.tsx"
     }
   }
 }
