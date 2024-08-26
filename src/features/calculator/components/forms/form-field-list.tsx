@@ -137,7 +137,7 @@ function CostItemList({
     [append]
   )
 
-  const edit = useCallback((index: number, item: DirectCost | IndirectCost) => {
+  const edit = useCallback((_: number, item: DirectCost | IndirectCost) => {
     console.log('Editing item:', item)
   }, [])
 
