@@ -24,4 +24,15 @@ export default defineConfig({
       '@': path.resolve(__dirname, './src'),
     },
   },
+  define: {
+    global: 'window',
+  },
+  optimizeDeps: {
+    include: ['react-mathquill'],
+  },
+  server: {
+    watch: {
+      usePolling: true,
+    },
+  },
 });

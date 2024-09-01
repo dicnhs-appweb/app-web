@@ -8,6 +8,8 @@ import {
 import {InputIndicator} from '@/components/ui/input-indicator'
 import {cn} from '@/lib/utils'
 import {Control} from 'react-hook-form'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { InfoIcon } from 'lucide-react'
 
 interface FormFieldInputProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -20,6 +22,7 @@ interface FormFieldInputProps {
   indicator?: React.ReactNode
   className?: string
   customIndicator?: React.ReactNode
+  infoText?: string
 }
 
 export function FormFieldInputIcon({
@@ -32,14 +35,27 @@ export function FormFieldInputIcon({
   indicator,
   className,
   customIndicator,
+  infoText,
 }: FormFieldInputProps) {
   return (
     <FormField
       control={control}
       name={name}
-      render={({field}) => (
+      render={({ field }) => (
         <FormItem className={cn('w-full', className)}>
-          <FormLabel>{label}</FormLabel>
+          <div className="flex flex-row items-center space-x-2">
+            <FormLabel>{label}</FormLabel>
+            {infoText && (
+              <Popover>
+                <PopoverTrigger asChild>
+                  <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                </PopoverTrigger>
+                <PopoverContent className="w-80">
+                  <p className="text-sm text-muted-foreground">{infoText}</p>
+                </PopoverContent>
+              </Popover>
+            )}
+          </div>
           <FormControl>
             <InputIndicator
               key={name}

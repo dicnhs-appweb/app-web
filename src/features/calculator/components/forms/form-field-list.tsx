@@ -1,5 +1,5 @@
-import {Button} from '@/components/ui/button'
-import {Card} from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { Card } from '@/components/ui/card'
 import {
   Dialog,
   DialogContent,
@@ -18,16 +18,16 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer'
-import {Input} from '@/components/ui/input'
-import {Label} from '@/components/ui/label'
-import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
-import {formatCurrency} from '@/features/calculator/lib/format-currency'
-import {cn} from '@/lib/utils'
-import {zodResolver} from '@hookform/resolvers/zod'
-import {useMediaQuery} from '@react-hook/media-query'
-import {CoinsIcon, Copy, Edit2, MinusIcon, PlusIcon, Trash2} from 'lucide-react'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { formatCurrency } from '@/features/calculator/lib/format-currency'
+import { cn } from '@/lib/utils'
+import { zodResolver } from '@hookform/resolvers/zod'
+import { useMediaQuery } from '@react-hook/media-query'
+import { CoinsIcon, Copy, Edit2, InfoIcon, MinusIcon, PlusIcon, Trash2 } from 'lucide-react'
 import * as React from 'react'
-import {useCallback, useMemo, useState} from 'react'
+import { useCallback, useMemo, useState } from 'react'
 import {
   Control,
   FieldArrayWithId,
@@ -40,28 +40,51 @@ import {
   IndirectCost,
   ProductPricingModel,
 } from '../../types/product.model'
+import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { baseUnits } from '../../types/base-units'
 
 type FormFieldListProps = {
   control: Control<ProductPricingModel>
   name: 'directCosts' | 'indirectCosts'
 }
 
-function FormFieldList({control, name}: FormFieldListProps) {
-  const {fields, append, remove, update} = useFieldArray({
+function FormFieldList({ control, name }: FormFieldListProps) {
+  const { fields, append, remove, update } = useFieldArray({
     name,
     control,
   })
   return (
     <div className="space-y-4">
       <div className="flex items-end justify-between">
-        <div>
-          <h1 className="text-xl font-bold">
-            {name === 'directCosts' ? 'Direct Costs' : 'Indirect Costs'}
-          </h1>
-          <p className="text-sm text-balance text-muted-foreground">
-            {name === 'directCosts'
-              ? 'Costs that are directly related to the production of the product.'
-              : 'Costs that are not directly tied to the production of the product.'}
+        <div className="flex flex-col items-start gap-2">
+          <div className="flex flex-row items-center gap-2">
+            <h1 className="text-xl font-bold">
+              {name === 'directCosts' ? 'Direct Costs' : 'Indirect Costs'}
+            </h1>
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <InfoIcon className="h-4 w-4" />
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent className="w-80">
+                <h3 className="font-semibold mb-2">
+                  {name === 'directCosts' ? 'Direct Costs' : 'Indirect Costs'}
+                </h3>
+                <p className="text-sm text-muted-foreground">
+                  {name === 'directCosts'
+                    ? 'Direct costs are expenses directly tied to the production of goods or services. Examples include raw materials, ingredients, and manufacturing supplies.'
+                    : 'Indirect costs are overhead expenses not directly related to production. Examples include rent, utilities, administrative salaries, and marketing expenses.'}
+                </p>
+              </PopoverContent>
+            </Popover>
+          </div>
+          <p>
+            {
+              name === 'directCosts'
+                ? 'Costs that are directly related to the production of the product.'
+                : 'Costs that are not directly tied to the production of the product.'
+            }
           </p>
         </div>
         <AddNewItemDialogDrawer
@@ -79,7 +102,7 @@ function FormFieldList({control, name}: FormFieldListProps) {
               </h3>
               <p className="text-sm text-center text-balance text-muted-foreground">
                 {name === 'directCosts'
-                  ? 'Costs directly associated with product production (e.g., materials, labor)'
+                  ? 'Costs directly associated with product production (e.g., materials, ingredients)'
                   : 'Overhead costs not directly tied to production (e.g., rent, utilities)'}
               </p>
             </div>
@@ -125,7 +148,7 @@ function CostItemList({
 }) {
   const updateQuantity = useCallback(
     (index: number, newQuantity: number) => {
-      update(index, {...fields[index], quantity: Math.max(0, newQuantity)})
+      update(index, { ...fields[index], quantity: Math.max(0, newQuantity) })
     },
     [fields, update]
   )
@@ -171,7 +194,7 @@ interface CostItemProps {
 }
 
 const CostItem: React.FC<CostItemProps> = React.memo(
-  ({field, index, updateQuantity, remove, duplicate, edit}) => {
+  ({ field, index, updateQuantity, remove, duplicate, edit }) => {
     const [isPopoverOpen, setIsPopoverOpen] = useState(false)
 
     const handleIncrement = useCallback(
@@ -219,7 +242,7 @@ const CostItem: React.FC<CostItemProps> = React.memo(
           <div className={cn('flex-grow', isPopoverOpen && 'opacity-65')}>
             <h3>{field.name}</h3>
             <p className="text-xs text-muted-foreground">
-              {formatCurrency(field.unitCost)}
+              {formatCurrency(field.unitCost)}/{field.unitType}
             </p>
           </div>
           <CostItemActions
@@ -248,7 +271,7 @@ interface CostItemActionsProps {
 }
 
 const CostItemActions: React.FC<CostItemActionsProps> = React.memo(
-  ({field, index, remove, duplicate, edit, isPopoverOpen}) => {
+  ({ field, index, remove, duplicate, edit, isPopoverOpen }) => {
     const handleRemove = useCallback(() => remove(index), [remove, index])
     const handleDuplicate = useCallback(
       () => duplicate(field),
@@ -301,24 +324,35 @@ function AddNewItemDialogDrawer({
   onAdd: (item: NewItemFormData) => void
   itemLabel: string
 }) {
-  const [open, setOpen] = React.useState(false)
-  const isDesktop = useMediaQuery('(min-width: 768px)')
+  const [open, setOpen] = React.useState(false);
+  const isDesktop = useMediaQuery('(min-width: 768px)');
+  const [selectedUnitType, setSelectedUnitType] = React.useState(baseUnits[0].units[0].value);
 
   const {
     register,
     handleSubmit,
     reset,
-    formState: {errors},
+    watch,
+    setValue,
+    formState: { errors },
   } = useForm<NewItemFormData>({
     resolver: zodResolver(CostInfo),
-    defaultValues: {quantity: 0, unitCost: 0},
-  })
+    defaultValues: { quantity: 0, unitCost: 0, unitType: baseUnits[0].units[0].value },
+  });
+
+  const watchedUnitType = watch('unitType');
+
+  React.useEffect(() => {
+    if (watchedUnitType !== selectedUnitType) {
+      setSelectedUnitType(watchedUnitType);
+    }
+  }, [watchedUnitType]);
 
   const onSubmit = (data: NewItemFormData) => {
-    onAdd(data)
-    setOpen(false)
-    reset()
-  }
+    onAdd(data);
+    setOpen(false);
+    reset();
+  };
 
   const content = (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
@@ -330,24 +364,52 @@ function AddNewItemDialogDrawer({
         )}
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="quantity">Quantity</Label>
-        <Input
-          type="number"
-          step="1"
-          id="quantity"
-          {...register('quantity', {valueAsNumber: true})}
-        />
+
+        <div className="flex gap-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="quantity">Quantity</Label>
+            <Input
+              type="number"
+              step="0.01"
+              id="quantity"
+              {...register('quantity', { valueAsNumber: true })}
+            />
+          </div>
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="unitType">Unit Type</Label>
+            <Select
+              onValueChange={(value) => setValue('unitType', value)}
+              defaultValue={selectedUnitType}
+            >
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select unit" />
+              </SelectTrigger>
+              <SelectContent position='popper'>
+                {baseUnits.map((category) => (
+                  <SelectGroup key={category.category}>
+                    <SelectLabel>{category.category}</SelectLabel>
+                    {category.units.map((unit) => (
+                      <SelectItem key={unit.value} value={unit.value}>
+                        {unit.label}
+                      </SelectItem>
+                    ))}
+                  </SelectGroup>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
         {errors.quantity && (
           <p className="text-sm text-red-500">{errors.quantity.message}</p>
         )}
       </div>
       <div className="grid gap-2">
-        <Label htmlFor="unitCost">Unit Cost</Label>
+        <Label htmlFor="unitCost">Unit Cost (per {selectedUnitType})</Label>
         <Input
           type="number"
           step="0.01"
           id="unitCost"
-          {...register('unitCost', {valueAsNumber: true})}
+          {...register('unitCost', { valueAsNumber: true })}
         />
         {errors.unitCost && (
           <p className="text-sm text-red-500">{errors.unitCost.message}</p>
@@ -357,7 +419,7 @@ function AddNewItemDialogDrawer({
         Add {itemLabel}
       </Button>
     </form>
-  )
+  );
 
   if (isDesktop) {
     return (

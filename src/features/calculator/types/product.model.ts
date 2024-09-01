@@ -5,6 +5,7 @@ export const CostInfo = z.object({
   name: z.string().min(1, 'Item name is required'),
   quantity: z.number().min(0, 'Quantity must be a non-negative number'),
   unitCost: z.number().min(0, 'Unit cost must be a non-negative number'),
+  unitType: z.string().min(1, 'Unit type is required'),
 });
 
 // Pricing Strategy Schema

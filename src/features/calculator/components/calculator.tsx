@@ -19,11 +19,12 @@ import {
 } from '@/components/ui/select'
 import {Slider} from '@/components/ui/slider'
 import {cn} from '@/lib/utils'
-import {Boxes, DollarSignIcon, Percent} from 'lucide-react'
+import {Boxes, DollarSignIcon, InfoIcon, Percent} from 'lucide-react'
 import {UseFormReturn} from 'react-hook-form'
 import {ProductPricingModel} from '../types/product.model'
 import {FormFieldInput} from './forms/form-field-input'
 import {FormFieldInputIcon} from './forms/form-field-input-icon'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface CalculatorProps {
   productForm: UseFormReturn<ProductPricingModel>
@@ -50,6 +51,7 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
             control={productForm.control}
             name="productName"
             label="Product Name"
+            info="The name of the product you are pricing."
           />
           <div className="grid items-center grid-cols-12 gap-4">
             <FormField
@@ -57,26 +59,45 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
               name="pricingStrategy.targetValue"
               render={({field}) => (
                 <FormItem className="col-span-12 lg:col-span-6">
-                  <FormLabel>
-                    {productForm.getValues('pricingStrategy.method') ===
-                    'cost-plus' ? (
-                      <span className="inline-flex items-center gap-px">
-                        Cost Plus (<Percent size={16} />)
-                      </span>
-                    ) : (
-                      'Fixed Price'
-                    )}
-                  </FormLabel>
+                  <div className={cn("flex items-center space-x-2", productForm.getValues('pricingStrategy.method') === 'fixed-price' ? '-mb-2' : 'mb-4')}>
+                    <FormLabel>
+                      {productForm.getValues('pricingStrategy.method') ===
+                      'cost-plus'
+                        ? 'Cost Plus'
+                        : 'Fixed Price'}
+                    </FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                      </PopoverTrigger>
+                      <PopoverContent className="w-80">
+                        <h3 className="font-semibold mb-2">
+                          {productForm.getValues('pricingStrategy.method') ===
+                          'cost-plus'
+                            ? 'Cost Plus Strategy'
+                            : 'Fixed Price Strategy'}
+                        </h3>
+                        <p className="text-sm text-muted-foreground">
+                          {productForm.getValues('pricingStrategy.method') ===
+                          'cost-plus'
+                            ? 'This slider allows you to set the percentage markup on the cost of production.'
+                            : 'Enter the fixed price for your product.'}
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   {productForm.getValues('pricingStrategy.method') ===
                   'cost-plus' ? (
                     <div className="space-y-2">
-                      <Slider
-                        min={0}
-                        max={100}
-                        step={0.1}
-                        value={[field.value]}
-                        onValueChange={value => field.onChange(value[0])}
-                      />
+                      <div className="flex items-center space-x-2">
+                        <Slider
+                          min={0}
+                          max={100}
+                          step={0.1}
+                          value={[field.value]}
+                          onValueChange={value => field.onChange(value[0])}
+                        />
+                      </div>
                       <div className="text-sm text-left text-muted-foreground">
                         {field.value.toFixed(1)}%
                       </div>
@@ -85,9 +106,7 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
                     <FormFieldInputIcon
                       control={productForm.control}
                       name="pricingStrategy.targetValue"
-                      type="number"
-                      step="0.01"
-                      parseValue={parseFloat}
+                      parseValue={(value) => parseFloat(value)}
                       indicator={
                         <DollarSignIcon className="w-5 h-5" strokeWidth={1.5} />
                       }
@@ -102,7 +121,22 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
               name="pricingStrategy.method"
               render={({field}) => (
                 <FormItem className="col-span-12 lg:col-span-6">
-                  <FormLabel>Pricing Strategy</FormLabel>
+                  <div className="flex items-center space-x-2">
+                    <FormLabel>Pricing Strategy</FormLabel>
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                      </PopoverTrigger>
+                      <PopoverContent align='end' alignOffset={10} className="w-80">
+                        <h3 className="font-semibold mb-2">Pricing Strategy</h3>
+                        <p className="text-sm text-muted-foreground">
+                          Choose a pricing strategy for your product. 
+                          "Cost Plus" adds a markup to the cost of production, 
+                          while "Fixed Price" sets a predetermined price.
+                        </p>
+                      </PopoverContent>
+                    </Popover>
+                  </div>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
@@ -127,17 +161,17 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
               control={productForm.control}
               name="plannedProductionQuantity"
               label="Production Quantity"
-              type="number"
-              parseValue={parseInt}
+              parseValue={(value) => parseFloat(value)}
               indicator={<Boxes className="w-5 h-5" strokeWidth={1.5} />}
+              infoText="The number of units you plan to produce."
             />
             <div className="space-y-2">
               <FormFieldInputIcon
                 control={productForm.control}
                 name="forecastedSalesQuantity"
                 label="Sales Quantity"
-                type="number"
-                parseValue={parseInt}
+                parseValue={(value) => parseFloat(value)}
+                infoText="The number of units you plan to sell."
                 customIndicator={
                   <div className="flex items-center -mr-3">
                     {[50, 75, 100].map(percentage => (
