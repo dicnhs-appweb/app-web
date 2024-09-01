@@ -33,6 +33,7 @@ import {
   FieldArrayWithId,
   useFieldArray,
   useForm,
+  Controller,
 } from 'react-hook-form'
 import {
   CostInfo,
@@ -42,6 +43,8 @@ import {
 } from '../../types/product.model'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { baseUnits } from '../../types/base-units'
+import { EditableMathField } from '../../types/mathquill-loader';
+import * as math from 'mathjs';
 
 type FormFieldListProps = {
   control: Control<ProductPricingModel>
@@ -317,6 +320,64 @@ CostItemActions.displayName = 'CostItemActions'
 
 type NewItemFormData = DirectCost | IndirectCost
 
+const MathInput = React.forwardRef<HTMLInputElement, { onChange: (value: number) => void, value: number, className?: string }>(
+  ({ onChange, className, value }) => {
+    const [latex, setLatex] = useState(() => `${value}`);
+
+    const evaluateAndRound = (latexString: string) => {
+      try {
+        const mathExpression = latexString
+          .replace(/\\frac{(\d+)}{(\d+)}/g, '($1/$2)')
+          .replace(/\\times/g, '*')
+          .replace(/\\div/g, '/')
+          .replace(/\\cdot/g, '*');
+
+        return math.evaluate(mathExpression);
+      } catch (error) {
+        console.error("Error evaluating expression:", error);
+        return 0;
+      }
+    };
+
+    return (
+      <div className={cn(
+        'flex h-10 w-full font-sans rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
+        className
+      )}>
+        <EditableMathField
+          latex={latex}
+          config={{
+            restrictMismatchedBrackets: true,
+            autoCommands: 'pi theta sqrt sum',
+            autoOperatorNames: 'sin cos tan',
+          }}
+          style={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            paddingTop: '3px',
+            marginLeft: '-4px',
+            alignItems: 'center',
+            fontFamily: 'var(--font-geist)',
+            border: 'none',
+            outline: 'none',
+            background: 'transparent',
+            fontSize: '15px',
+          }}
+          onChange={(mathField) => {
+            const newLatex = mathField.latex();
+            setLatex(newLatex);
+            const newValue = evaluateAndRound(newLatex);
+            onChange(newValue);
+          }}
+        />
+      </div>
+    );
+  }
+);
+
+MathInput.displayName = 'MathInput';
+
 function AddNewItemDialogDrawer({
   onAdd,
   itemLabel,
@@ -335,6 +396,7 @@ function AddNewItemDialogDrawer({
     watch,
     setValue,
     formState: { errors },
+    control,
   } = useForm<NewItemFormData>({
     resolver: zodResolver(CostInfo),
     defaultValues: { quantity: 0, unitCost: 0, unitType: baseUnits[0].units[0].value },
@@ -344,7 +406,7 @@ function AddNewItemDialogDrawer({
 
   React.useEffect(() => {
     if (watchedUnitType !== selectedUnitType) {
-      setSelectedUnitType(watchedUnitType);
+      setSelectedUnitType(watchedUnitType as typeof selectedUnitType);
     }
   }, [watchedUnitType]);
 
@@ -364,15 +426,18 @@ function AddNewItemDialogDrawer({
         )}
       </div>
       <div className="grid gap-2">
-
-        <div className="flex gap-2">
-          <div className="flex flex-col gap-2">
+        <div className="flex gap-2 w-full">
+          <div className="flex flex-col gap-2 w-full">
             <Label htmlFor="quantity">Quantity</Label>
-            <Input
-              type="number"
-              step="0.01"
-              id="quantity"
-              {...register('quantity', { valueAsNumber: true })}
+            <Controller
+              name="quantity"
+              control={control}
+              render={({ field }) => (
+                <MathInput
+                  onChange={field.onChange}
+                  value={field.value}
+                />
+              )}
             />
           </div>
           <div className="flex flex-col gap-2">
