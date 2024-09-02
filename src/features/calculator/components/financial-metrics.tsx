@@ -510,15 +510,6 @@ const FinancialMetrics: React.FC<FinancialMetricsDashboardProps> = ({
             </a>
           </p>
           <Accordion type="single" collapsible>
-            <AccordionItem value="item-1">
-              <AccordionTrigger>CM Ratio formula</AccordionTrigger>
-              <AccordionContent>
-                <p>
-                  CM Ratio = (Total Revenue - Total Variable Costs) / Total
-                  Revenue
-                </p>
-              </AccordionContent>
-            </AccordionItem>
             <AccordionItem value="item-2">
               <AccordionTrigger>Example scenario</AccordionTrigger>
               <AccordionContent>
