@@ -1,10 +1,10 @@
-import {CalculatorIcon} from 'lucide-react';
-import {Button} from '../ui/button';
-import {Card} from '../ui/card';
+import {CalculatorIcon} from 'lucide-react'
+import {Button} from '../ui/button'
+import {Card} from '../ui/card'
 
 export const NavigationBar = () => {
   return (
-    <Card className="sticky flex items-center justify-between w-full h-16 px-6 bg-black/95">
+    <Card className="flex items-center justify-between w-full h-16 px-6 bg-black/95">
       <div className="inline-flex gap-2 text-xl font-bold">
         <CalculatorIcon className="text-primary-foreground/85 size-8" />
       </div>
@@ -35,5 +35,5 @@ export const NavigationBar = () => {
         </Button>
       </div>
     </Card>
-  );
-};
+  )
+}

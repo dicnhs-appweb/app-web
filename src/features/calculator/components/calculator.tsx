@@ -8,8 +8,11 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import FormFieldMaterials from '@/features/calculator/components/forms/form-field-list'
+import {SrpData} from './srp-data'
 
 import {Button} from '@/components/ui/button'
+import {Input} from '@/components/ui/input'
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
 import {
   Select,
   SelectContent,
@@ -19,12 +22,11 @@ import {
 } from '@/components/ui/select'
 import {Slider} from '@/components/ui/slider'
 import {cn} from '@/lib/utils'
-import {Boxes, DollarSignIcon, InfoIcon, Percent} from 'lucide-react'
+import {Boxes, DollarSignIcon, InfoIcon} from 'lucide-react'
 import {UseFormReturn} from 'react-hook-form'
 import {ProductPricingModel} from '../types/product.model'
 import {FormFieldInput} from './forms/form-field-input'
 import {FormFieldInputIcon} from './forms/form-field-input-icon'
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 
 interface CalculatorProps {
   productForm: UseFormReturn<ProductPricingModel>
@@ -59,7 +61,15 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
               name="pricingStrategy.targetValue"
               render={({field}) => (
                 <FormItem className="col-span-12 lg:col-span-6">
-                  <div className={cn("flex items-center space-x-2", productForm.getValues('pricingStrategy.method') === 'fixed-price' ? '-mb-2' : 'mb-4')}>
+                  <div
+                    className={cn(
+                      'flex items-center space-x-2',
+                      productForm.getValues('pricingStrategy.method') ===
+                        'fixed-price'
+                        ? '-mb-2'
+                        : 'mb-4'
+                    )}
+                  >
                     <FormLabel>
                       {productForm.getValues('pricingStrategy.method') ===
                       'cost-plus'
@@ -68,10 +78,10 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
                     </FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        <InfoIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
                       </PopoverTrigger>
                       <PopoverContent className="w-80">
-                        <h3 className="font-semibold mb-2">
+                        <h3 className="mb-2 font-semibold">
                           {productForm.getValues('pricingStrategy.method') ===
                           'cost-plus'
                             ? 'Cost Plus Strategy'
@@ -98,15 +108,24 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
                           onValueChange={value => field.onChange(value[0])}
                         />
                       </div>
-                      <div className="text-sm text-left text-muted-foreground">
-                        {field.value.toFixed(1)}%
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          type="number"
+                          value={field.value.toFixed(1)}
+                          onChange={e => {
+                            const value = parseFloat(e.target.value)
+                            field.onChange(value)
+                          }}
+                          className="w-20 text-right"
+                        />
+                        <span className="text-sm text-muted-foreground">%</span>
                       </div>
                     </div>
                   ) : (
                     <FormFieldInputIcon
                       control={productForm.control}
                       name="pricingStrategy.targetValue"
-                      parseValue={(value) => parseFloat(value)}
+                      parseValue={value => parseFloat(value)}
                       indicator={
                         <DollarSignIcon className="w-5 h-5" strokeWidth={1.5} />
                       }
@@ -125,14 +144,18 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
                     <FormLabel>Pricing Strategy</FormLabel>
                     <Popover>
                       <PopoverTrigger asChild>
-                        <InfoIcon className="h-4 w-4 text-muted-foreground cursor-pointer" />
+                        <InfoIcon className="w-4 h-4 cursor-pointer text-muted-foreground" />
                       </PopoverTrigger>
-                      <PopoverContent align='end' alignOffset={10} className="w-80">
-                        <h3 className="font-semibold mb-2">Pricing Strategy</h3>
+                      <PopoverContent
+                        align="end"
+                        alignOffset={10}
+                        className="w-80"
+                      >
+                        <h3 className="mb-2 font-semibold">Pricing Strategy</h3>
                         <p className="text-sm text-muted-foreground">
-                          Choose a pricing strategy for your product. 
-                          "Cost Plus" adds a markup to the cost of production, 
-                          while "Fixed Price" sets a predetermined price.
+                          Choose a pricing strategy for your product. "Cost
+                          Plus" adds a markup to the cost of production, while
+                          "Fixed Price" sets a predetermined price.
                         </p>
                       </PopoverContent>
                     </Popover>
@@ -161,7 +184,7 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
               control={productForm.control}
               name="plannedProductionQuantity"
               label="Production Quantity"
-              parseValue={(value) => parseFloat(value)}
+              parseValue={value => parseFloat(value)}
               indicator={<Boxes className="w-5 h-5" strokeWidth={1.5} />}
               infoText="The number of units you plan to produce."
             />
@@ -170,7 +193,7 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
                 control={productForm.control}
                 name="forecastedSalesQuantity"
                 label="Sales Quantity"
-                parseValue={(value) => parseFloat(value)}
+                parseValue={value => parseFloat(value)}
                 infoText="The number of units you plan to sell."
                 customIndicator={
                   <div className="flex items-center -mr-3">
@@ -203,6 +226,7 @@ export function Calculator({productForm, handleSaveData}: CalculatorProps) {
           control={productForm.control}
           name="indirectCosts"
         />
+        <SrpData />
       </form>
     </Form>
   )

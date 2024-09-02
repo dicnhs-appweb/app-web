@@ -215,15 +215,28 @@ const calculateOptimalTickCount = (min: number, max: number) => {
   return Math.max(5, Math.min(calculatedTickCount, 15))
 }
 
+import {InfoIcon} from 'lucide-react'
+
+import {Popover, PopoverContent, PopoverTrigger} from '@/components/ui/popover'
+
 const KpiCard: React.FC<KpiCardProps> = ({title, value, description, icon}) => (
   <div>
     <CardHeader className="flex flex-row items-center justify-between pb-0 space-y-0">
-      <CardTitle className="text-sm font-medium">{title}</CardTitle>
+      <div className="flex items-center">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <Popover>
+          <PopoverTrigger asChild>
+            <InfoIcon className="w-4 h-4 ml-2 cursor-pointer text-muted-foreground" />
+          </PopoverTrigger>
+          <PopoverContent>
+            <p className="text-sm text-muted-foreground">{description}</p>
+          </PopoverContent>
+        </Popover>
+      </div>
       {icon}
     </CardHeader>
     <CardContent>
       <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">{description}</p>
     </CardContent>
   </div>
 )
@@ -275,35 +288,35 @@ const KpiGrid: React.FC<{
     <KpiCard
       title="Break-even Point"
       value={`${breakEvenPoint.toFixed(2)} units`}
-      description="Quantity at which total costs equal Sales Revenue"
+      description="The number of units you need to sell to cover all costs. At this point, you're not making a profit, but you're not losing money either. For example, if your break-even point is 1000 units, selling 999 units results in a loss, while selling 1001 units generates a profit."
       icon={<MinusIcon className="w-6 h-6 text-muted-foreground" />}
     />
     <Separator />
     <KpiCard
       title="Expected Sales"
       value={`${forecastedSalesQuantity} units`}
-      description="Projected sales volume based on your expectations"
+      description="The number of units you think you can sell based on your market research and business goals. This helps you plan your production and marketing efforts. For instance, if you expect to sell 1500 units, you might plan to produce slightly more to account for potential increased demand."
       icon={<TrendingUp className="w-6 h-6 text-muted-foreground" />}
     />
     <Separator />
     <KpiCard
       title="Profit at Expected Sales"
       value={formatCurrency(profitAtExpectedSales)}
-      description="Estimated profit at the expected sales volume"
+      description="The amount of money you expect to earn after all expenses if you achieve your expected sales. This shows if your business will be profitable at your sales target. For example, if this value is ₱50,000, it means you'll earn ₱50,000 in profit if you sell your expected number of units."
       icon={<TrendingUp className="w-6 h-6 text-muted-foreground" />}
     />
     <Separator />
     <KpiCard
       title="Contribution Margin Ratio"
       value={`${(contributionMarginRatio * 100).toFixed(2)}%`}
-      description="Percentage of sales contributing to fixed costs and profit"
+      description="The percentage of each peso from sales that's left after paying variable costs. This money helps cover fixed costs and generate profit. A higher percentage is better for your business. For instance, if the ratio is 60%, it means for every ₱100 in sales, ₱60 is available to cover fixed costs and contribute to profit."
       icon={<Percent className="w-5 h-5" />}
     />
     <Separator />
     <KpiCard
       title="Operating Leverage"
       value={operatingLeverage.toFixed(2)}
-      description="Sensitivity of profit to changes in sales volume"
+      description="This shows how changes in sales affect your profit. A higher number means your profit is more sensitive to sales changes. For example, if your operating leverage is 3, a 10% increase in sales could lead to a 30% increase in profit. Conversely, a 10% decrease in sales could result in a 30% decrease in profit."
       icon={<TrendingUp className="w-5 h-5" />}
     />
   </Card>

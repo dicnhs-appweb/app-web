@@ -107,7 +107,7 @@ function Calculate() {
           </div>
         </div>
         <div className="order-1 md:order-2 md:w-1/2">
-          <div className="md:sticky md:top-4">
+          <div className="md:top-4">
             <Calculator
               productForm={productForm}
               handleSaveData={handleSaveData}

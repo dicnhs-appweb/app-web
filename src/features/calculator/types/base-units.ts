@@ -54,11 +54,8 @@ export const baseUnits = [
   },
 ] as const;
 
-// Validate the baseUnits array
 BaseUnitsSchema.parse(baseUnits);
 
-// Export the type for baseUnits
 export type BaseUnits = typeof baseUnits;
 
-// Export a type for a single unit
 export type BaseUnit = BaseUnits[number]['units'][number];
