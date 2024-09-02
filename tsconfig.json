@@ -1,8 +1,8 @@
 {
   "files": [],
   "references": [
-    { "path": "./tsconfig.app.json" },
-    { "path": "./tsconfig.node.json" }
+    {"path": "./tsconfig.app.json"},
+    {"path": "./tsconfig.node.json"}
   ],
   "compilerOptions": {
     "esModuleInterop": true,
@@ -10,7 +10,6 @@
     "baseUrl": ".",
     "paths": {
       "@/*": ["./src/*"]
-    },
-    "include": ["src/**/*.ts", "src/**/*.tsx", "src/**/*.d.ts"]
+    }
   }
 }

@@ -26,8 +26,6 @@ import {
 interface MetricCardProps {
   title: string
   value: number | string
-  description?: string
-  explanation?: string
   information?: React.ReactNode
   calculation: string
   formula: string
@@ -37,8 +35,6 @@ interface MetricCardProps {
 const MetricCard: React.FC<MetricCardProps> = ({
   title,
   value,
-  description,
-  explanation,
   information,
   calculation,
   formula,
